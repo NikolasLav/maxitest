@@ -1,9 +1,13 @@
 // ensure app
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.WebApp) {
+        console.error('❌ WebApp не загружен');
+        return;
+    }
 
-let tg = window.WebApp;
-//tg.expand();
-//tg.MainButton.textColor = "#FFFFFF";
-//tg.MainButton.color = "#FF00FF";
+    const tg = window.WebApp;
+    tg.ready(); // Обязательно!
+});
 
 // current date
 var today = new Date().toISOString().split('T')[0];
@@ -279,6 +283,6 @@ document.getElementById("tg").addEventListener("submit", function(e){
     console.log(JSON.stringify(data, null, 4));
 //    tg.MainButton.setText("Задача создана!");
 //    tg.MainButton.show();
-//    tg.shareMaxContent(JSON.stringify(data, null, 4));
-    tg.shareContent({text: JSON.stringify(data, null, 4)});
+    tg.sendData(JSON.stringify(data, null, 4));
+//    tg.shareContent({text:JSON.stringify(data, null, 4)});
 });
