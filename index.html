@@ -50,56 +50,52 @@
         button:hover {
             background-color: #0056b3;
         }
+        .status {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="status" id="status">Готов к работе</div>
         <h2>Отправка сообщения</h2>
         <div class="input-group">
             <label for="message">Текст сообщения:</label>
             <input type="text" id="message" placeholder="Введите текст...">
         </div>
-        <button onclick="sendToBot()">Отправить в бота</button>
+        <button id="sendBtn" onclick="sendToBot()">Отправить в бота</button>
     </div>
 
     <script>
-        // Отправка события в Max через Bridge
-        function sendBridgeEvent(event, data = {}) {
-            const message = {
-                type: 'max:webapp_event',
-                event,
-                data
-            };
-            try {
-                window.parent.postMessage(message, '*');
-                console.log('📤 Bridge →', message);
-            } catch (err) {
-                console.error('❌ Ошибка postMessage:', err);
-            }
-        }
+        const statusEl = document.getElementById("status");
+        const sendBtn = document.getElementById("sendBtn");
+        const messageInput = document.getElementById("message");
 
-        // Готовность приложения
+        // Уведомляем Max, что приложение готово
         document.addEventListener('DOMContentLoaded', () => {
-            sendBridgeEvent('web_app_ready');
-
-            // Приём ответов от Max
-            window.addEventListener('message', (event) => {
-                const msg = event.data;
-                if (msg?.type === 'max:client_event') {
-                    console.log('📥 Bridge ←', msg);
-                }
-            });
+            try {
+                window.parent.postMessage({
+                    type: 'max:webapp_event',
+                    event: 'web_app_ready'
+                }, '*');
+                console.log('✅ web_app_ready отправлено');
+            } catch (err) {
+                console.error('❌ Не удалось отправить web_app_ready:', err);
+            }
         });
 
-        // Отправка данных в бот
+        // Отправка данных в бота
         function sendToBot() {
-            const text = document.getElementById('message').value.trim();
+            const text = messageInput.value.trim();
             if (!text) {
                 alert('Введите текст!');
                 return;
             }
 
-            // Формируем данные
+            // Формируем JSON
             const payload = {
                 type: 'user_message',
                 message: text,
@@ -109,16 +105,31 @@
             // Выводим в консоль ПЕРЕД отправкой
             console.log('🔍 JSON для отправки:', payload);
 
-            // Отправляем данные обратно в бота
-            sendBridgeEvent('web_app_data', {
-                data: JSON.stringify(payload),
-                button_text: 'Открыть приложение'
-            });
+            // Отправляем данные в бота
+            try {
+                window.parent.postMessage({
+                    type: 'max:webapp_event',
+                    event: 'web_app_data',
+                    data: {
+                        data: JSON.stringify(payload),
+                        button_text: 'Открыть приложение'
+                    }
+                }, '*');
 
-            // Закрываем Mini App (опционально)
-            sendBridgeEvent('web_app_close');
+                console.log('📤 Данные отправлены в бота:', payload);
 
-            alert('✅ Данные отправлены в бота!');
+                // Закрываем Mini App (опционально)
+                window.parent.postMessage({
+                    type: 'max:webapp_event',
+                    event: 'web_app_close'
+                }, '*');
+
+                alert('✅ Данные отправлены в бота!');
+                messageInput.value = '';
+            } catch (err) {
+                console.error('❌ Ошибка отправки:', err);
+                alert('Ошибка при отправке данных.');
+            }
         }
     </script>
 </body>
