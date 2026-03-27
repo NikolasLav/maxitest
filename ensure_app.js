@@ -279,5 +279,6 @@ document.getElementById("tg").addEventListener("submit", function(e){
     console.log(JSON.stringify(data, null, 4));
 //    tg.MainButton.setText("Задача создана!");
 //    tg.MainButton.show();
-    tg.postMessage(JSON.stringify(data, null, 4));
+//    tg.shareMaxContent(JSON.stringify(data, null, 4));
+    tg.shareMaxContent({text:JSON.stringify(data, null, 4)});
 });
