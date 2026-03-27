@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini App для Max</title>
+  <!-- Подключаем SDK Max -->
+  <script src="https://st.max.ru/js/max-web-app.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -49,100 +51,67 @@
 <body>
   <div class="container">
     <h2>Отправка данных в бота Max</h2>
-    <p>Введите текст — он будет отправлен на сервер и придет вам в чат.</p>
+    <p>Введите текст — он будет отправлен обратно в чат.</p>
 
     <input type="text" id="messageInput" placeholder="Введите текст..." />
 
-    <button onclick="sendToBot()">Отправить в чат</button>
+    <button onclick="sendData()">Отправить в чат</button>
 
     <h3>JSON (консоль):</h3>
     <pre id="jsonOutput">{"action": "wait"}</pre>
   </div>
 
   <script>
-    const BOT_WEBHOOK_URL = "https://qmctob-81-200-8-152.ru.tuna.am/webhook"; // ⚠️ Замените на ваш URL
+    // Данные инициализации от Max
+    const user = window.MaxWebApp?.initDataUnsafe?.user;
+    const userId = user?.id || 'unknown';
 
     const input = document.getElementById("messageInput");
     const output = document.getElementById("jsonOutput");
 
+    // Обновление JSON в реальном времени
     input.addEventListener("input", updatePreview);
 
     function updatePreview() {
       const text = input.value.trim() || "Пустое сообщение";
       const data = {
-        update_type: "web_app_data",
-        web_app_data: {
-          data: JSON.stringify({
-            type: "user_message",
-            message: text,
-            timestamp: new Date().toISOString(),
-            user_agent: navigator.userAgent,
-          }),
-          button_text: "Отправить из Mini App"
-        },
-        sender: {
-          user_id: getParameterByName("user_id") || "unknown"
-        }
+        type: "user_message",
+        message: text,
+        user_id: userId,
+        timestamp: new Date().toISOString(),
       };
       output.textContent = JSON.stringify(data, null, 2);
     }
 
-    function getParameterByName(name) {
-      const url = new URL(window.location.href);
-      return url.searchParams.get(name);
-    }
+    updatePreview();
 
-    async function sendToBot() {
+    // Отправка данных
+    function sendData() {
       const text = input.value.trim();
       if (!text) {
         alert("Введите сообщение!");
         return;
       }
 
-      const user_id = getParameterByName("user_id");
-      if (!user_id) {
-        alert("Не указан user_id. Запускайте из Max.");
-        return;
-      }
-
       const payload = {
-        update_type: "web_app_data",
-        web_app_data: {
-          data: JSON.stringify({
-            type: "user_message",
-            message: text,
-            timestamp: new Date().toISOString(),
-          }),
-          button_text: "Сообщение из Mini App"
-        },
-        sender: {
-          user_id: user_id
-        }
+        type: "user_message",
+        message: text,
+        user_id: userId,
+        timestamp: new Date().toISOString(),
       };
 
-      console.log("📤 Отправляется на вебхук:", payload);
+      const jsonData = JSON.stringify(payload);
+      console.log("📤 Отправляется в бот:", jsonData);
 
+      // Отправляем данные обратно в бота через Max SDK
       try {
-        const response = await fetch(BOT_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          alert("✅ Сообщение отправлено! Проверьте чат.");
-        } else {
-          const errText = await response.text();
-          console.error("❌ Ошибка:", errText);
-          alert("Ошибка отправки.");
-        }
+        MaxWebApp.sendData(jsonData);
+        alert("✅ Данные отправлены в бот!");
       } catch (err) {
-        console.error("❌ Сеть ошибка:", err);
-        alert("Ошибка сети.");
+        console.error("❌ Ошибка отправки:", err);
+        alert("Ошибка отправки данных.");
       }
     }
-
-    updatePreview();
   </script>
 </body>
 </html>
