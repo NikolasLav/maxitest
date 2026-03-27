@@ -66,12 +66,22 @@
     <script>
         // Инициализация MiniApp
         document.addEventListener('DOMContentLoaded', function() {
-            if (window.MaxWebApp) {
-                MaxWebApp.init();
-                console.log('MaxWebApp инициализирован');
-            } else {
-                console.error('MaxWebApp не загружен');
-            }
+            // Проверяем наличие MaxWebApp с таймаутом
+            const maxAppInterval = setInterval(() => {
+                if (window.MaxWebApp) {
+                    MaxWebApp.init();
+                    console.log('MaxWebApp инициализирован');
+                    clearInterval(maxAppInterval);
+                }
+            }, 100);
+            
+            // Фallback на случай, если MaxWebApp так и не загрузится
+            setTimeout(() => {
+                if (!window.MaxWebApp) {
+                    console.error('MaxWebApp не загрузился в течение 5 секунд');
+                    alert('Сервис MaxWebApp недоступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
+                }
+            }, 5000);
         });
 
         // Функция отправки сообщения
@@ -94,10 +104,11 @@
                     messageInput.value = '';
                 }).catch(function(error) {
                     console.error('Ошибка при отправке сообщения:', error);
-                    alert('Ошибка при отправке сообщения: ' + error.message);
+                    alert('Ошибка при отправке сообщения: ' + (error.message || error));
                 });
             } else {
-                alert('MaxWebApp не доступен');
+                alert('MaxWebApp не доступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
+                console.error('MaxWebApp не найден в глобальном контексте');
             }
         }
     </script>
