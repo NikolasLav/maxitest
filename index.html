@@ -1,166 +1,105 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mini App для Max</title>
-  <!-- Подключаем SDK Max -->
-  <script src="https://st.max.ru/js/max-web-app.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f3f3f3;
-      color: #333;
-    }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 12px;
-      margin: 10px 0;
-      width: 100%;
-      font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-sizing: border-box;
-    }
-    button {
-      background: #0088cc;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0066aa;
-    }
-    pre {
-      background: #eee;
-      padding: 10px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-size: 12px;
-    }
-    .status {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniApp для Max</title>
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Mini App для Max</h2>
-    <p id="status" class="status">Загрузка SDK...</p>
+    <div class="container">
+        <h2>Отправка сообщения</h2>
+        <div class="input-group">
+            <label for="message">Текст сообщения:</label>
+            <input type="text" id="message" placeholder="Введите текст...">
+        </div>
+        <button onclick="sendMessage()">Отправить в чат</button>
+    </div>
 
-    <input type="text" id="messageInput" placeholder="Введите текст..." disabled />
+    <script>
+        // Инициализация MiniApp
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.MaxWebApp) {
+                MaxWebApp.init();
+                console.log('MaxWebApp инициализирован');
+            } else {
+                console.error('MaxWebApp не загружен');
+            }
+        });
 
-    <button id="sendBtn" onclick="sendData()" disabled>Отправить в чат</button>
+        // Функция отправки сообщения
+        function sendMessage() {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                alert('Пожалуйста, введите текст сообщения');
+                return;
+            }
 
-    <h3>Данные пользователя:</h3>
-    <pre id="userData">{"loading": true}</pre>
-
-    <h3>JSON для отправки:</h3>
-    <pre id="jsonOutput">{"waiting": true}</pre>
-  </div>
-
-  <script>
-    const input = document.getElementById("messageInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const statusEl = document.getElementById("status");
-    const userDataEl = document.getElementById("userData");
-    const jsonOutput = document.getElementById("jsonOutput");
-
-    let userId = null;
-
-    // Дожидаемся загрузки SDK
-    document.addEventListener("maxWebAppReady", async () => {
-      console.log("✅ Max SDK готов");
-
-      if (!window.MaxWebApp) {
-        showError("SDK Max не загрузился");
-        return;
-      }
-
-      const initData = window.MaxWebApp.initDataUnsafe;
-      console.log("📋 initData:", initData);
-
-      if (!initData || !initData.user) {
-        showError("❌ Не удалось получить данные пользователя");
-        userDataEl.textContent = JSON.stringify(initData || {}, null, 2);
-        return;
-      }
-
-      // Правильно извлекаем user_id
-      const user = initData.user;
-      userId = user.id || user.userId || null;
-
-      if (!userId) {
-        showError("❌ Не найден user.id или user.userId");
-        return;
-      }
-
-      statusEl.textContent = "Готов к работе!";
-      statusEl.style.color = "green";
-      input.disabled = false;
-      sendBtn.disabled = false;
-
-      userDataEl.textContent = JSON.stringify(user, null, 2);
-      updatePreview();
-    });
-
-    function showError(msg) {
-      statusEl.textContent = msg;
-      console.error(msg);
-    }
-
-    function updatePreview() {
-      const text = input.value.trim() || "Пустое сообщение";
-      const data = {
-        type: "user_message",
-        message: text,
-        user_id: userId || "unknown",
-        timestamp: new Date().toISOString(),
-      };
-      jsonOutput.textContent = JSON.stringify(data, null, 2);
-    }
-
-    input.addEventListener("input", updatePreview);
-
-    function sendData() {
-      const text = input.value.trim();
-      if (!text) {
-        alert("Введите сообщение!");
-        return;
-      }
-
-      if (!userId) {
-        alert("Неизвестный пользователь. Перезапустите в Max.");
-        return;
-      }
-
-      const payload = {
-        type: "user_message",
-        message: text,
-        user_id: userId,
-        timestamp: new Date().toISOString(),
-      };
-
-      const jsonData = JSON.stringify(payload);
-      console.log("📤 Отправляется в бот:", jsonData);
-
-      try {
-        MaxWebApp.sendData(jsonData);
-        alert("✅ Данные отправлены в бот!");
-      } catch (err) {
-        console.error("❌ Ошибка отправки:", err);
-        alert("Ошибка отправки данных.");
-      }
-    }
-  </script>
+            if (window.MaxWebApp) {
+                // Отправляем сообщение обратно в чат
+                MaxWebApp.sendMessage({
+                    text: message
+                }).then(function(result) {
+                    console.log('Сообщение отправлено:', result);
+                    alert('Сообщение отправлено в чат!');
+                    messageInput.value = '';
+                }).catch(function(error) {
+                    console.error('Ошибка при отправке сообщения:', error);
+                    alert('Ошибка при отправке сообщения: ' + error.message);
+                });
+            } else {
+                alert('MaxWebApp не доступен');
+            }
+        }
+    </script>
 </body>
 </html>
