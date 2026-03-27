@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiniApp для Max</title>
-    <script src="https://st.max.ru/js/max-web-app.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,56 +59,66 @@
             <label for="message">Текст сообщения:</label>
             <input type="text" id="message" placeholder="Введите текст...">
         </div>
-        <button onclick="sendMessage()">Отправить в чат</button>
+        <button onclick="sendToBot()">Отправить в бота</button>
     </div>
 
     <script>
-        // Инициализация MiniApp
-        document.addEventListener('DOMContentLoaded', function() {
-            // Проверяем наличие WebApp с таймаутом
-            const maxAppInterval = setInterval(() => {
-                if (window.WebApp) {
-                    WebApp.init();
-                    console.log('WebApp инициализирован');
-                    clearInterval(maxAppInterval);
+        // Отправка события в Max через Bridge
+        function sendBridgeEvent(event, data = {}) {
+            const message = {
+                type: 'max:webapp_event',
+                event,
+                data
+            };
+            try {
+                window.parent.postMessage(message, '*');
+                console.log('📤 Bridge →', message);
+            } catch (err) {
+                console.error('❌ Ошибка postMessage:', err);
+            }
+        }
+
+        // Готовность приложения
+        document.addEventListener('DOMContentLoaded', () => {
+            sendBridgeEvent('web_app_ready');
+
+            // Приём ответов от Max
+            window.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (msg?.type === 'max:client_event') {
+                    console.log('📥 Bridge ←', msg);
                 }
-            }, 100);
-            
-            // Фallback на случай, если WebApp так и не загрузится
-            setTimeout(() => {
-                if (!window.WebApp) {
-                    console.error('WebApp не загрузился в течение 5 секунд');
-                    alert('Сервис WebApp недоступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
-                }
-            }, 5000);
+            });
         });
 
-        // Функция отправки сообщения
-        function sendMessage() {
-            const messageInput = document.getElementById('message');
-            const message = messageInput.value.trim();
-            
-            if (!message) {
-                alert('Пожалуйста, введите текст сообщения');
+        // Отправка данных в бот
+        function sendToBot() {
+            const text = document.getElementById('message').value.trim();
+            if (!text) {
+                alert('Введите текст!');
                 return;
             }
 
-            if (window.WebApp) {
-                // Отправляем сообщение обратно в чат
-                WebApp.sendMessage({
-                    text: message
-                }).then(function(result) {
-                    console.log('Сообщение отправлено:', result);
-                    alert('Сообщение отправлено в чат!');
-                    messageInput.value = '';
-                }).catch(function(error) {
-                    console.error('Ошибка при отправке сообщения:', error);
-                    alert('Ошибка при отправке сообщения: ' + (error.message || error));
-                });
-            } else {
-                alert('WebApp не доступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
-                console.error('WebApp не найден в глобальном контексте');
-            }
+            // Формируем данные
+            const payload = {
+                type: 'user_message',
+                message: text,
+                timestamp: new Date().toISOString()
+            };
+
+            // Выводим в консоль ПЕРЕД отправкой
+            console.log('🔍 JSON для отправки:', payload);
+
+            // Отправляем данные обратно в бота
+            sendBridgeEvent('web_app_data', {
+                data: JSON.stringify(payload),
+                button_text: 'Открыть приложение'
+            });
+
+            // Закрываем Mini App (опционально)
+            sendBridgeEvent('web_app_close');
+
+            alert('✅ Данные отправлены в бота!');
         }
     </script>
 </body>
