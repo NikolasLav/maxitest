@@ -2,8 +2,8 @@
 
 let tg = window.WebApp;
 //tg.expand();
-tg.MainButton.textColor = "#FFFFFF";
-tg.MainButton.color = "#FF00FF";
+//tg.MainButton.textColor = "#FFFFFF";
+//tg.MainButton.color = "#FF00FF";
 
 // current date
 var today = new Date().toISOString().split('T')[0];
@@ -277,7 +277,7 @@ document.getElementById("tg").addEventListener("submit", function(e){
         warranty_period: warranty_period_value,
     };
     console.log(JSON.stringify(data, null, 4));
-    tg.MainButton.setText("Задача создана!");
-    tg.MainButton.show();
-    tg.sendData(JSON.stringify(data, null, 4));
+//    tg.MainButton.setText("Задача создана!");
+//    tg.MainButton.show();
+    tg.sendEvent(JSON.stringify(data, null, 4));
 });
