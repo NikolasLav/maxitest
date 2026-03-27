@@ -66,20 +66,20 @@
     <script>
         // Инициализация MiniApp
         document.addEventListener('DOMContentLoaded', function() {
-            // Проверяем наличие MaxWebApp с таймаутом
+            // Проверяем наличие WebApp с таймаутом
             const maxAppInterval = setInterval(() => {
-                if (window.MaxWebApp) {
-                    MaxWebApp.init();
-                    console.log('MaxWebApp инициализирован');
+                if (window.WebApp) {
+                    WebApp.init();
+                    console.log('WebApp инициализирован');
                     clearInterval(maxAppInterval);
                 }
             }, 100);
             
-            // Фallback на случай, если MaxWebApp так и не загрузится
+            // Фallback на случай, если WebApp так и не загрузится
             setTimeout(() => {
-                if (!window.MaxWebApp) {
-                    console.error('MaxWebApp не загрузился в течение 5 секунд');
-                    alert('Сервис MaxWebApp недоступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
+                if (!window.WebApp) {
+                    console.error('WebApp не загрузился в течение 5 секунд');
+                    alert('Сервис WebApp недоступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
                 }
             }, 5000);
         });
@@ -94,9 +94,9 @@
                 return;
             }
 
-            if (window.MaxWebApp) {
+            if (window.WebApp) {
                 // Отправляем сообщение обратно в чат
-                MaxWebApp.sendMessage({
+                WebApp.sendMessage({
                     text: message
                 }).then(function(result) {
                     console.log('Сообщение отправлено:', result);
@@ -107,8 +107,8 @@
                     alert('Ошибка при отправке сообщения: ' + (error.message || error));
                 });
             } else {
-                alert('MaxWebApp не доступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
-                console.error('MaxWebApp не найден в глобальном контексте');
+                alert('WebApp не доступен. Пожалуйста, убедитесь, что вы открываете приложение через интерфейс Max.');
+                console.error('WebApp не найден в глобальном контексте');
             }
         }
     </script>
