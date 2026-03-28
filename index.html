@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-  <title>MAX Simple Form</title>
+  <title>MAX Simple Form (Fixed)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Правильный URL SDK -->
   <script src="https://st.max.ru/js/max-web-app.js"></script>
@@ -86,36 +85,47 @@
   </div>
 
   <script>
-    // Инициализация MAX WebApp
-    window.WebApp.ready()
-      .then(() => {
-        showMessage('✅ Приложение готово к работе', 'success');
+    // Объявляем переменные в глобальной области видимости
+    let isWebAppReady = false;
+    const resultEl = document.getElementById('result');
 
-        // Применяем тему
-        WebApp.getTheme()
-          .then(theme => {
-            document.body.className = theme.isDark ? 'dark' : 'light';
-          })
-          .catch(() => {
-            // Если тема недоступна, оставляем светлую
-          });
-      })
-      .catch(error => {
-        showMessage('⚠️ Приложение загрузилось, но с ограничениями', 'error');
-      });
+    // Инициализация MAX WebApp с проверкой доступности
+    if (window.WebApp && typeof window.WebApp.ready === 'function') {
+      window.WebApp.ready()
+        .then(() => {
+          isWebAppReady = true;
+          showMessage('✅ Приложение готово к работе', 'success');
+
+          // Применяем тему
+          if (typeof WebApp.getTheme === 'function') {
+            WebApp.getTheme()
+              .then(theme => {
+                document.body.className = theme.isDark ? 'dark' : 'light';
+              })
+              .catch(() => {
+                // Если тема недоступна, оставляем светлую
+              });
+          }
+        })
+        .catch(error => {
+          showMessage('⚠️ Приложение загрузилось, но с ограничениями', 'error');
+        });
+    } else {
+      showMessage('⚠️ SDK MAX не загружен. Работа в режиме отладки.', 'error');
+    }
 
     async function sendData() {
-      const resultEl = document.getElementById('result');
       const message = document.getElementById('message').value.trim();
 
-      // Если поле пустое, всё равно отправляем (по вашему запросу)
-      if (!message) {
-        showMessage('⚠ Отправляю пустое поле...', 'error');
+      // Проверяем готовность WebApp
+      if (!isWebAppReady) {
+        showMessage('❌ SDK MAX не готов. Попробуйте перезагрузить страницу.', 'error');
+        return;
       }
 
       try {
-        // ПОЛУЧИТЕ ВАШ ВЕБХУК URL И ЗАМЕНИТЕ ЗДЕСЬ
-        const WEBHOOK_URL = 'https://ojie4q-81-200-8-152.ru.tuna.am/webhook';
+        // ЗАМЕНИТЕ НА ВАШ ВЕБХУК URL
+        const WEBHOOK_URL = 'https://hhzn8o-81-200-8-152.ru.tuna.am/endpoint';
 
         // Получаем данные пользователя
         let userInfo = {};
@@ -141,7 +151,6 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(payload),
-          // Увеличиваем таймаут для отладки
           signal: AbortSignal.timeout(10000)
         });
 
@@ -155,7 +164,7 @@
         console.error('Ошибка:', error);
         let errorMessage = '❌ Ошибка отправки данных';
         if (error.name === 'AbortError') {
-          errorMessage += '\n⏰ Таймаут запроса (10 сек)';
+          errorMessage += '\n⏰ Таймаут запроса (10 сек)';
         } else if (error.message.includes('network')) {
           errorMessage += '\n🌐 Проблемы с сетью';
         }
@@ -164,9 +173,13 @@
     }
 
     function showMessage(text, type) {
-      resultEl.textContent = text;
-      resultEl.className = `result ${type}`;
-      resultEl.style.display = 'block';
+      if (resultEl) {
+        resultEl.textContent = text;
+        resultEl.className = `result ${type}`;
+        resultEl.style.display = 'block';
+      } else {
+        alert(`Сообщение: ${text}`);
+      }
     }
   </script>
 </body>
