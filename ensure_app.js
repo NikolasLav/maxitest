@@ -291,7 +291,7 @@ document.getElementById("tg").addEventListener("submit", function(e){
     };
 
 try {
-    const result = window.WebApp.postMessage(JSON.stringify(data, null, 4));
+    const result = window.WebApp.postEvent(JSON.stringify(data, null, 4));
     console.log("Данные успешно отправлены в MAX:", result);
     window.WebApp.close();
       } catch (error) {
