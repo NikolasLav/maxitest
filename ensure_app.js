@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log("WebApp инициализирован, версия:", window.WebApp.version);
   console.log("Данные пользователя:", window.WebApp.initDataUnsafe);
   const purpose = document.getElementById('paymentPurpose');
-  purpose.value = window.WebApp.initDataUnsafe;
+  purpose.value = window.WebApp.initDataUnsafe.value;
 
 });
 
@@ -290,12 +290,34 @@ document.getElementById("tg").addEventListener("submit", function(e){
         warranty_period: warranty_period_value,
     };
 
-try {
-    const result = window.WebApp.sendEvent(JSON.stringify(data, null, 4));
-    console.log("Данные успешно отправлены в MAX:", result);
-    window.WebApp.close();
-      } catch (error) {
-    console.error("Ошибка при отправке через shareContent:", error);
-    alert("Не удалось отправить данные. Попробуйте ещё раз.");
-  }
+    try {
+// Отправляем данные на ВАШ сервер
+      const response = fetch('https://gocsbb-81-200-8-152.ru.tuna.am/webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: 24753223,
+          chatId: 201157351,
+          data: data,
+          timestamp: Date.now()
+        })
+      });
+
+      const result = response.json();
+
+      if (result.success) {
+        alert("Данные успешно отправлены!");
+        // Закрываем мини-приложение
+        if (window.WebApp && window.WebApp.close) {
+          window.WebApp.close();
+        }
+      } else {
+        alert("Ошибка отправки: " + result.error);
+      }
+          } catch (error) {
+        console.error("Ошибка при отправке через shareContent:", error);
+        alert("Не удалось отправить данные. Попробуйте ещё раз.\n", error);
+      }
 });
