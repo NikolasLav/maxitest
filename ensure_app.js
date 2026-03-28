@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Отправка данных на сервер
     async function sendDataToServer(data) {
-        const url = 'https://b96rc1-81-200-8-152.ru.tuna.am/webhook';
+        const url = 'https://ta7b1t-81-200-8-152.ru.tuna.am/webhook';
 
         try {
             const response = await fetch(url, {
