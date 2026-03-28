@@ -285,7 +285,7 @@ document.getElementById("tg").addEventListener("submit", function(e){
 //    tg.MainButton.show();
 //    tg.sendData(JSON.stringify(data, null, 4));
 try {
-    const result = await tg.shareContent({text: "JSON.stringify(data, null, 4)"});
+    const result = tg.shareContent({text: "JSON.stringify(data, null, 4)"});
     console.log("Данные успешно отправлены в MAX:", result);
     window.WebApp.close();
       } catch (error) {
