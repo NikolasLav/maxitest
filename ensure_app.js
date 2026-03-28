@@ -29,7 +29,6 @@ document.getElementById('tdate').value = today;
 document.getElementById('tdate').min = today;
 
 // payment purpose
-const purpose = document.getElementById('paymentPurpose');
 purpose.value = '';
 const purpose_length = document.getElementById('purposeLength');
 btn = document.getElementById('submit');
