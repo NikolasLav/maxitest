@@ -16,12 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const purpose = document.getElementById('paymentPurpose');
   purpose.value = window.WebApp.initDataUnsafe;
 
-  // Находим форму
-  const form = document.getElementById('orderForm');
-  if (!form) {
-    console.error("Форма с id='orderForm' не найдена");
-    return;
-  }
 });
 
 // current date
@@ -30,6 +24,7 @@ document.getElementById('tdate').value = today;
 document.getElementById('tdate').min = today;
 
 // payment purpose
+const purpose = document.getElementById('paymentPurpose');
 purpose.value = '';
 const purpose_length = document.getElementById('purposeLength');
 btn = document.getElementById('submit');
