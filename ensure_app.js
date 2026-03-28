@@ -1,323 +1,219 @@
 // ensure app
-document.addEventListener('DOMContentLoaded', function() {
-  console.log("DOM загружен");
+document.addEventListener('DOMContentLoaded', function () {
+    console.log("DOM загружен");
 
-  // Проверяем наличие WebApp
-  if (typeof window.WebApp === 'undefined') {
-    console.error("window.WebApp не найден! Проверьте подключение библиотеки max-web-app.js");
-    alert("Ошибка: библиотека MAX не загружена");
-    return;
-  }
+    // Проверяем наличие WebApp
+    if (typeof window.WebApp === 'undefined') {
+        console.error("window.WebApp не найден! Проверьте подключение библиотеки max-web-app.js");
+        alert("Ошибка: библиотека MAX не загружена");
+        return;
+    }
 
-  // Инициализация WebApp
-  window.WebApp.ready();
-  console.log("WebApp инициализирован, версия:", window.WebApp.version);
-  console.log("Данные пользователя:", window.WebApp.initDataUnsafe);
-  const purpose = document.getElementById('paymentPurpose');
-  purpose.value = window.WebApp.initDataUnsafe.value;
+    // Инициализация WebApp
+    window.WebApp.ready();
+    console.log("WebApp инициализирован, версия:", window.WebApp.version);
+    console.log("Данные пользователя:", window.WebApp.initDataUnsafe);
 
-});
+    // current date
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('tdate').value = today;
+    document.getElementById('tdate').min = today;
 
-// current date
-var today = new Date().toISOString().split('T')[0];
-document.getElementById('tdate').value = today;
-document.getElementById('tdate').min = today;
+    // payment purpose
+    const purpose = document.getElementById('paymentPurpose');
+    const purposeLength = document.getElementById('purposeLength');
+    const btn = document.getElementById('submit');
 
-// payment purpose
-const purpose = document.getElementById('paymentPurpose');
-purpose.value = '';
-const purpose_length = document.getElementById('purposeLength');
-btn = document.getElementById('submit');
-//var numberPattern = /\d+/g;
-var ensuringType = document.getElementById('ensuringType');
-var eis = document.getElementById('contractEIS');
-var ikz = document.getElementById('contractIKZ');
-var subj = document.getElementById('contractSubj');
-var warranty_per = document.getElementById('warranty_per');
-var warranty_period_value = this.warranty_period.value;
-// for number checking
-var bik = document.getElementById('counterpartyBankBic');  //+9+
-var ks = document.getElementById('counterpartyAccountNumber');  //+20+
-var eks = document.getElementById('counterpartyBankCorrAccount');  //+20+
-var inn = document.getElementById('counterpartyINN');  //+10+
-var kpp = document.getElementById('counterpartyKPP');  //+9+
-var uin = document.getElementById('supplierBillId');  //+4+
-var kbk = document.getElementById('taxInfoKBK');  //+1 or 20+
-var oktmo = document.getElementById('taxInfoOKATO');  //1, 8 or 11
+    var ensuringType = document.getElementById('ensuringType');
+    var eis = document.getElementById('contractEIS');
+    var ikz = document.getElementById('contractIKZ');
+    var subj = document.getElementById('contractSubj');
+    var warranty_per = document.getElementById('warranty_per');
 
-// forbidden symbols replace function
-var counterparty_name = document.getElementById('counterpartyName');
-[subj, counterparty_name].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        element.value = element.value.replace(/[»,«]/g, "\"")
+    // for number checking
+    var bik = document.getElementById('counterpartyBankBic');
+    var ks = document.getElementById('counterpartyAccountNumber');
+    var eks = document.getElementById('counterpartyBankCorrAccount');
+    var inn = document.getElementById('counterpartyINN');
+    var kpp = document.getElementById('counterpartyKPP');
+    var uin = document.getElementById('supplierBillId');
+    var kbk = document.getElementById('taxInfoKBK');
+    var oktmo = document.getElementById('taxInfoOKATO');
+    var counterpartyName = document.getElementById('counterpartyName');
+
+    // forbidden symbols replace function
+    [subj, counterpartyName].forEach(function (element) {
+        element.addEventListener('input', function (e) {
+            element.value = element.value.replace(/[»,«]/g, '"');
+        });
     });
-});
 
-// read params from URL
-let params = new URLSearchParams(document.location.search);
-console.log("params: ", params);
-if (params.has('o')) {
-    let organizationName = document.getElementById('organizationName');
-    let counterpartyName = document.getElementById('counterpartyName');
-    let paymentAmount = document.getElementById('paymentAmount');
-    let contractSubj = document.getElementById('contractSubj');
-    organizationName.value = params.get('o');
-    ensuringType.value = params.get('ensure_type');
-    warranty_per.value = params.get('wp');
-    eis.value = params.get('contract_ies');
-    ikz.value = params.get('contract_ikz');
-    let eis_val = eis.value
-    let ikz_val = ikz.value
-    if (eis_val.length > 0) {
-        eis_val = 'EИС: ' + eis_val;
-        }
-    if (ikz_val.length > 0) {
-        ikz_val = ' ИКЗ: ' + ikz_val;
-        }
-    numbers = eis_val + ikz_val
-    if (numbers.length > 0) {
-        numbers = '(' + numbers + ') ';
-        }
-    if (ensuringType.value == "Гар.Обесп.") {
-            warranty_period.style.display = "block";
+    // read params from URL
+    let params = new URLSearchParams(document.location.search);
+    console.log("params: ", Object.fromEntries(params));
+
+    if (params.has('o')) {
+        document.getElementById('organizationName').value = params.get('o') || '';
+        ensuringType.value = params.get('ensure_type') || '';
+        warranty_per.value = params.get('wp') || '';
+        eis.value = params.get('contract_ies') || '';
+        ikz.value = params.get('contract_ikz') || '';
+        subj.value = params.get('purpose') || '';
+        counterpartyName.value = params.get('cp_name') || '';
+        inn.value = params.get('cp_inn') || '';
+        kpp.value = params.get('cp_kpp') || '';
+        bik.value = params.get('cp_bik') || '';
+        ks.value = params.get('cp_rs') || '';
+        eks.value = params.get('cp_ks') || '';
+        document.getElementById('paymentAmount').value = params.get('amount') || '';
+        uin.value = params.get('uin') || '';
+        kbk.value = params.get('kbk') || '';
+        oktmo.value = params.get('oktmo') || '';
+
+        // Формирование назначения
+        let eisVal = eis.value ? 'EИС: ' + eis.value : '';
+        let ikzVal = ikz.value ? ' ИКЗ: ' + ikz.value : '';
+        let numbers = eisVal + ikzVal;
+        if (numbers) numbers = '(' + numbers + ') ';
+
+        if (ensuringType.value === "Гар.Обесп.") {
             warranty_per.required = true;
-            purpose.value = ensuringType.value + ' ' + numbers + subj.value + ' ' + warranty_per.value + 'мес.';
-            };
-    contractSubj.value = params.get('purpose');
-    counterpartyName.value = params.get('cp_name');
-    counterpartyINN.value = params.get('cp_inn');
-    counterpartyKPP.value = params.get('cp_kpp');
-    counterpartyBankBic.value = params.get('cp_bik');
-    counterpartyAccountNumber.value = params.get('cp_rs');
-    counterpartyBankCorrAccount.value = params.get('cp_ks');
-    paymentAmount.value = params.get('amount');
-    uin.value = params.get('uin');
-    kbk.value = params.get('kbk');
-    oktmo.value = params.get('oktmo');
-
-    console.log("organization: ", organizationName, "counterparty: ", counterpartyName);
-    };
-
-
-[counterparty_name].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length > 160) {
-            element.style.background = "#ebabab";
-                        btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
+            purpose.value = `${ensuringType.value} ${numbers}${subj.value} ${warranty_per.value}мес.`;
         } else {
-            element.style.background = "#aafac1"
-
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-
-
-// digit input only function
-[bik, ks, eks, inn, kpp, ikz, uin, kbk, oktmo].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        element.value = element.value.replace(/\D/g, '')
-    });
-});
-
-// length input checking function
-[bik, kpp].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length != 9) {
-            element.style.background = "#ebabab";
-                        btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
-        } else {
-            element.style.background = "#aafac1"
-
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-[inn].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length != 10) {
-            element.style.background = "#ebabab";
-            btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
-        } else {
-            element.style.background = "#aafac1"
-
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-[uin].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length != 1 && element.value.length != 4 && element.value.length != 20 && element.value.length != 25) {
-            element.style.background = "#ebabab";
-                        btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
-        } else {
-            element.style.background = "#aafac1"
-
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-[ks, eks].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length != 20) {
-            element.style.background = "#ebabab";
-                        btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
-        } else {
-            element.style.background = "#aafac1"
-
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-[kbk].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length != 20 && element.value.length != 1) {
-            element.style.background = "#ebabab";
-                        btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
-        } else {
-            element.style.background = "#aafac1"
-
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-[oktmo].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        if (element.value.length != 11 && element.value.length != 8 && element.value.length != 1) {
-            element.style.background = "#ebabab";
-            btn.style.background = "#e3292c"
-            btn.textContent = "Проверьте форму"
-            btn.setAttribute('disabled','disabled');
-        } else {
-            element.style.background = "#aafac1"
-            btn.style.background = "blue"
-            btn.textContent = "Отправить на оплату"
-            btn.removeAttribute("disabled");
-        };
-    });
-});
-
-// purpose text forming and its length checking function
-[warranty_per, ensuringType, eis, ikz, subj].forEach(function(element){
-    element.addEventListener('change', function(e) {
-        let eis_val = eis.value
-        let ikz_val = ikz.value
-        if (eis_val.length > 0) {
-            eis_val = 'EИС: ' + eis_val;
-            }
-        if (ikz_val.length > 0) {
-            ikz_val = ' ИКЗ: ' + ikz_val;
-            }
-        numbers = eis_val + ikz_val
-        if (numbers.length > 0) {
-            numbers = '(' + numbers + ') ';
-            }
-        purpose.value = ensuringType.value + ' ' + numbers + subj.value;
-        if (purpose.value.length > 210) {
-            purpose_length.style.display = "block";
-            btn.style.background = "#e3292c";
-            btn.textContent = "Проверьте форму";
-            btn.setAttribute('disabled','disabled');
-        } else {
-            purpose_length.style.display = "None";
-            btn.style.background = "blue";
-            btn.textContent = "Отправить на оплату";
-            btn.removeAttribute("disabled");
-        let warranty = ensuringType.value
-        if (ensuringType.value == "Гар.Обесп.") {
-            warranty_period.style.display = "block";
-            warranty_per.required = true;
-            purpose.value = ensuringType.value + ' ' + numbers + subj.value + ' ' + warranty_per.value + 'мес.';
-        } else {
-            warranty_period.style.display = "None";
-            warranty_per.required = false;
+            purpose.value = `${ensuringType.value} ${numbers}${subj.value}`;
         }
-        };
+    }
+
+    // Только цифры
+    [bik, ks, eks, inn, kpp, ikz, uin, kbk, oktmo].forEach(el => {
+        el.addEventListener('input', () => {
+            el.value = el.value.replace(/\D/g, '');
+        });
     });
-});
 
+    // Валидация длины
+    function validateField(el, validLengths) {
+        const value = el.value;
+        const isValid = Array.isArray(validLengths)
+            ? validLengths.includes(value.length)
+            : value.length === validLengths;
 
-// sending data
-document.getElementById("tg").addEventListener("submit", function(e){
-    e.preventDefault();
-    warranty_period_value = this.warranty_period.value;
-    if (this.ensuringType.value != "Гар.Обесп.") {
-        warranty_period_value = "NULL";
-    };
+        el.classList.toggle('invalid', !isValid);
+        el.classList.toggle('valid', isValid);
 
-    let data = {
-        organizationName: this.organizationName.value,
-        ensuringType: this.ensuringType.value,
-        counterpartyBankBic: this.counterpartyBankBic.value,
-        counterpartyAccountNumber: this.counterpartyAccountNumber.value,
-        counterpartyBankCorrAccount: this.counterpartyBankCorrAccount.value,
-        counterpartyINN: this.counterpartyINN.value,
-        counterpartyKPP: this.counterpartyKPP.value,
-        counterpartyName: this.counterpartyName.value,
-        paymentAmount: this.paymentAmount.value,
-        paymentDate: this.paymentDate.value,
-        contractEIS: this.contractEIS.value,
-        contractIKZ: this.contractIKZ.value,
-        contractSubj: this.contractSubj.value,
-        supplierBillId: this.supplierBillId.value,
-        taxInfoKBK: this.taxInfoKBK.value,
-        taxInfoOKATO: this.taxInfoOKATO.value,
-        paymentPurpose: this.paymentPurpose.value,
-        warranty_period: warranty_period_value,
-    };
+        updateButtonState();
+    }
 
-    try {
-// Отправляем данные на ВАШ сервер
-      const response = fetch('https://gocsbb-81-200-8-152.ru.tuna.am/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: 24753223,
-          chatId: 201157351,
-          data: data,
-          timestamp: Date.now()
-        })
-      });
+    function updateButtonState() {
+        const isPurposeLong = purpose.value.length > 210;
+        const isCounterpartyLong = counterpartyName.value.length > 160;
+        const hasInvalidField = [bik, kpp, inn, uin, ks, eks, kbk, oktmo].some(
+            el => el.classList.contains('invalid')
+        );
 
-      const result = response.json();
+        btn.disabled = isPurposeLong || isCounterpartyLong || hasInvalidField;
+        btn.textContent = btn.disabled ? "Проверьте форму" : "Отправить на оплату";
+        btn.style.background = btn.disabled ? "#e3292c" : "blue";
+    }
 
-      if (result.success) {
-        alert("Данные успешно отправлены!");
-        // Закрываем мини-приложение
-        if (window.WebApp && window.WebApp.close) {
-          window.WebApp.close();
+    // Применяем валидацию
+    bik.addEventListener('input', () => validateField(bik, 9));
+    kpp.addEventListener('input', () => validateField(kpp, 9));
+    inn.addEventListener('input', () => validateField(inn, 10));
+    uin.addEventListener('input', () => validateField(uin, [1, 4, 20, 25]));
+    [ks, eks].forEach(el => el.addEventListener('input', () => validateField(el, 20)));
+    kbk.addEventListener('input', () => validateField(kbk, [1, 20]));
+    oktmo.addEventListener('input', () => validateField(oktmo, [1, 8, 11]));
+
+    counterpartyName.addEventListener('input', () => {
+        counterpartyName.classList.toggle('invalid', counterpartyName.value.length > 160);
+        updateButtonState();
+    });
+
+    // Обновление назначения платежа
+    [ensuringType, eis, ikz, subj, warranty_per].forEach(el => {
+        el.addEventListener('input', () => {
+            let eisVal = eis.value ? 'EИС: ' + eis.value : '';
+            let ikzVal = ikz.value ? ' ИКЗ: ' + ikz.value : '';
+            let numbers = eisVal + ikzVal;
+            if (numbers) numbers = '(' + numbers + ') ';
+
+            if (ensuringType.value === "Гар.Обесп.") {
+                warranty_per.required = true;
+                purpose.value = `${ensuringType.value} ${numbers}${subj.value} ${warranty_per.value}мес.`;
+            } else {
+                warranty_per.required = false;
+                purpose.value = `${ensuringType.value} ${numbers}${subj.value}`;
+            }
+
+            purposeLength.style.display = purpose.value.length > 210 ? "block" : "none";
+            updateButtonState();
+        });
+    });
+
+    // Отправка данных на сервер
+    async function sendDataToServer(data) {
+        const url = 'https://b96rc1-81-200-8-152.ru.tuna.am/webhook';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Данные успешно отправлены:', result);
+                return true;
+            } else {
+                console.error('❌ Ошибка сервера:', response.status, await response.text());
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Ошибка сети:', error);
+            return false;
         }
-      } else {
-        alert("Ошибка отправки: " + result.error);
-      }
-          } catch (error) {
-        console.error("Ошибка при отправке через shareContent:", error);
-        alert("Не удалось отправить данные. Попробуйте ещё раз.\n", error);
-      }
+    }
+
+    // Обработчик отправки формы
+    document.getElementById("tg").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const warrantyPeriodValue = ensuringType.value === "Гар.Обесп." ? warranty_per.value : "NULL";
+
+        const data = {
+            organizationName: this.organizationName.value,
+            ensuringType: this.ensuringType.value,
+            counterpartyBankBic: bik.value,
+            counterpartyAccountNumber: ks.value,
+            counterpartyBankCorrAccount: eks.value,
+            counterpartyINN: inn.value,
+            counterpartyKPP: kpp.value,
+            counterpartyName: counterpartyName.value,
+            paymentAmount: this.paymentAmount.value,
+            paymentDate: this.paymentDate.value,
+            contractEIS: eis.value,
+            contractIKZ: ikz.value,
+            contractSubj: subj.value,
+            supplierBillId: uin.value,
+            taxInfoKBK: kbk.value,
+            taxInfoOKATO: oktmo.value,
+            paymentPurpose: purpose.value,
+            warranty_period: warrantyPeriodValue,
+        };
+
+        console.log('🔍 Отправляю на сервер:', data);
+
+        const success = await sendDataToServer(data);
+
+        if (success) {
+            alert('Данные отправлены!');
+            window.WebApp.close();
+        } else {
+            alert('Ошибка отправки. Проверьте подключение.');
+        }
+    });
 });
