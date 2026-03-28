@@ -1,224 +1,292 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <title>MAX Simple Form (Final Fix)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Правильный URL SDK -->
-  <script src="https://st.max.ru/js/max-web-app.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      margin: 0;
-      background: #ffffff;
-      color: #333333;
-    }
-    .dark {
-      background: #1a1a1a;
-      color: #ffffff;
-    }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 20px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #result {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 6px;
-      text-align: center;
-      display: none;
-    }
-    .success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    .error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Отправка данных формы</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--tg-theme-hint-color, #8e8e93);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid var(--tg-theme-button-color, #007aff);
+            border-radius: 12px;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color, #007aff);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background-color: var(--tg-theme-button-color, #007aff);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 8px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .status {
+            margin-top: 1.5rem;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            text-align: center;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            border-left: 4px solid transparent;
+            display: none;
+        }
+
+        .status.success {
+            border-left-color: #34c759;
+            color: #34c759;
+            background-color: rgba(52, 199, 89, 0.1);
+        }
+
+        .status.error {
+            border-left-color: #ff3b30;
+            color: #ff3b30;
+            background-color: rgba(255, 59, 48, 0.1);
+        }
+
+        .status.info {
+            border-left-color: var(--tg-theme-button-color, #007aff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        /* Адаптация под тему MAX */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: var(--tg-theme-bg-color, #000000);
+                color: var(--tg-theme-text-color, #ffffff);
+            }
+            input, textarea, .status {
+                background-color: var(--tg-theme-secondary-bg-color, #1c1c1e);
+                border-color: #3a3a3c;
+            }
+        }
+    </style>
+    <script src="https://st.max.ru/js/max-web-app.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>MAX Simple Form</h1>
+    <div class="container">
+        <h1>Отправка данных</h1>
+        <div class="subtitle">Форма для тестирования вебхука</div>
 
-    <div>
-      <label for="message">Введите текст:</label>
-      <input type="text" id="message" placeholder="Ваш текст здесь">
+        <form id="dataForm">
+            <div class="form-group">
+                <label for="testText">Тестовый текст</label>
+                <textarea id="testText" name="testText" placeholder="Введите любой текст для отправки в вебхук..."></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">Отправить</button>
+        </form>
+
+        <div id="statusMessage" class="status"></div>
     </div>
 
-    <button onclick="sendData()">Отправить через вебхук</button>
+    <script>
+        // ==================== НАСТРОЙКИ ====================
+        // Адрес вебхука для отправки данных. Удобно менять здесь.
+        const WEBHOOK_URL = 'https://83trfd-81-200-8-152.ru.tuna.am/webhook'; // <-- ЗАМЕНИТЕ НА ВАШ АДРЕС
 
-    <div id="result"></div>
-  </div>
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        // Проверяем наличие объекта WebApp и сообщаем приложению MAX, что мини-приложение готово
+        if (window.WebApp) {
+            // Сообщаем MAX, что приложение загружено и готово к работе
+            window.WebApp.ready();
 
-  <script>
-    // Глобальные переменные
-    let isWebAppReady = false;
-    const resultEl = document.getElementById('result');
+            // Включаем предупреждение при попытке закрыть приложение (для защиты данных)
+            window.WebApp.enableClosingConfirmation();
 
-    // Инициализация MAX WebApp с защитой от ошибок
-    function initWebApp() {
-      // Проверяем доступность WebApp
-      if (!window.WebApp) {
-        showMessage('⚠️ SDK MAX не загружен. Работа в режиме отладки.', 'error');
-        isWebAppReady = true; // Разрешаем отправку данных без SDK
-        return;
-      }
+            // При желании можно настроить кнопку "Назад"
+            // window.WebApp.BackButton.show();
+            // window.WebApp.BackButton.onClick(() => {
+            //     window.WebApp.close();
+            // });
 
-      // Пытаемся вызвать ready() только если это функция
-      if (typeof WebApp.ready === 'function') {
-        try {
-          const readyResult = WebApp.ready();
-          // Проверяем, что ready() вернул промис
-          if (readyResult && typeof readyResult.then === 'function') {
-            readyResult
-              .then(() => {
-                isWebAppReady = true;
-                showMessage('✅ Приложение готово к работе', 'success');
-                applyTheme();
-              })
-              .catch(error => {
-                console.warn('WebApp ready failed:', error);
-                isWebAppReady = true; // Всё равно разрешаем отправку
-                showMessage('⚠️ Приложение загрузилось с ограничениями', 'error');
-              });
-          } else {
-            // Если ready() не вернул промис — считаем SDK готовым
-            isWebAppReady = true;
-            showMessage('⚠️ SDK MAX загружен, но ready() не возвращает промис', 'error');
-            applyTheme();
-          }
-        } catch (error) {
-          console.error('Error calling WebApp.ready():', error);
-          isWebAppReady = true;
-          showMessage('⚠️ Ошибка инициализации SDK', 'error');
-        }
-      } else {
-        // Если метода ready() нет — считаем SDK готовым
-        isWebAppReady = true;
-        showMessage('⚠️ Метод ready() недоступен. Работа в упрощённом режиме.', 'error');
-        applyTheme();
-      }
-    }
-
-    // Применяем тему интерфейса
-    function applyTheme() {
-      if (window.WebApp && typeof WebApp.getTheme === 'function') {
-        WebApp.getTheme()
-          .then(theme => {
-            document.body.className = theme.isDark ? 'dark' : 'light';
-          })
-          .catch(() => {
-            // Оставляем светлую тему по умолчанию
-          });
-      }
-    }
-
-    async function sendData() {
-      const message = document.getElementById('message').value.trim();
-
-      // Проверяем готовность WebApp
-      if (!isWebAppReady) {
-        showMessage('❌ SDK MAX не готов. Попробуйте перезагрузить страницу.', 'error');
-        return;
-      }
-
-      try {
-        // ЗАМЕНИТЕ НА ВАШ ВЕБХУК URL
-        const WEBHOOK_URL = 'https://hhzn8o-81-200-8-152.ru.tuna.am/webhook';
-
-        // Получаем данные пользователя, если доступно
-        let userInfo = {};
-        if (window.WebApp && typeof WebApp.getUserInfo === 'function') {
-          try {
-            userInfo = await WebApp.getUserInfo();
-          } catch (error) {
-            console.warn('User info not available:', error);
-          }
+            // Применяем тему MAX к body (для корректного отображения цветов)
+            if (window.WebApp.themeParams) {
+                const theme = window.WebApp.themeParams;
+                document.body.style.setProperty('--tg-theme-bg-color', theme.bg_color || '#ffffff');
+                document.body.style.setProperty('--tg-theme-text-color', theme.text_color || '#000000');
+                document.body.style.setProperty('--tg-theme-hint-color', theme.hint_color || '#8e8e93');
+                document.body.style.setProperty('--tg-theme-button-color', theme.button_color || '#007aff');
+                document.body.style.setProperty('--tg-theme-button-text-color', theme.button_text_color || '#ffffff');
+                document.body.style.setProperty('--tg-theme-secondary-bg-color', theme.secondary_bg_color || '#f5f5f5');
+            }
+        } else {
+            // Режим разработки вне MAX (опционально)
+            console.warn('WebApp object not found. Running outside MAX environment.');
+            document.querySelector('.subtitle').innerHTML += ' (режим разработки)';
         }
 
-        const payload = {
-          message: message,
-          userId: userInfo.userId || 'unknown',
-          firstName: userInfo.firstName || '',
-          lastName: userInfo.lastName || '',
-          timestamp: new Date().toISOString()
-        };
+        // ==================== ОТПРАВКА ДАННЫХ ====================
+        const form = document.getElementById('dataForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusDiv = document.getElementById('statusMessage');
 
-        showMessage('⏱️ Отправляем данные...', 'success');
+        // Функция для показа статуса
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
 
-        const response = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(10000)
+            // Автоматически скрываем сообщение через 5 секунд
+            setTimeout(() => {
+                if (statusDiv.style.display === 'block') {
+                    statusDiv.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        // Функция отправки данных на вебхук
+        async function sendToWebhook(data) {
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Webhook response:', result);
+                return { success: true, data: result };
+            } catch (error) {
+                console.error('Error sending to webhook:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Обработчик отправки формы
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Получаем текст из textarea
+            const testText = document.getElementById('testText').value;
+
+            // Простая проверка: если текст пустой, показываем предупреждение, но не блокируем отправку
+            if (!testText.trim()) {
+                showStatus('Поле с текстом пустое. Вы уверены, что хотите отправить пустые данные?', 'info');
+            }
+
+            // Блокируем кнопку на время отправки
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Отправка...';
+            showStatus('Отправка данных на вебхук...', 'info');
+
+            // Формируем данные для отправки
+            const payload = {
+                text: testText,
+                timestamp: Math.floor(Date.now() / 1000),
+                // Добавляем данные пользователя из MAX, если они доступны (для информативности)
+                user: window.WebApp?.initDataUnsafe?.user || null
+            };
+
+            // Отправляем данные
+            const result = await sendToWebhook(payload);
+
+            if (result.success) {
+                showStatus('✅ Данные успешно отправлены!', 'success');
+                // Опционально: очистить поле или оставить как есть
+                // document.getElementById('testText').value = '';
+            } else {
+                showStatus(`❌ Ошибка отправки: ${result.error}`, 'error');
+            }
+
+            // Разблокируем кнопку
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Отправить';
+
+            // Тактильный отклик (если доступен)
+            if (window.WebApp && window.WebApp.HapticFeedback) {
+                if (result.success) {
+                    window.WebApp.HapticFeedback.notificationOccurred('success');
+                } else {
+                    window.WebApp.HapticFeedback.notificationOccurred('error');
+                }
+            }
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        showMessage(`✅ Данные успешно отправлены!\nID пользователя: ${userInfo.userId}`, 'success');
-      } catch (error) {
-        console.error('Ошибка отправки:', error);
-        let errorMessage = '❌ Ошибка отправки данных';
-        if (error.name === 'AbortError') {
-          errorMessage += '\n⏰ Таймаут запроса (10 сек)';
-        } else if (error.message.includes('network')) {
-          errorMessage += '\n🌐 Проблемы с сетью';
-        }
-        showMessage(errorMessage, 'error');
-      }
-    }
-
-    function showMessage(text, type) {
-      if (resultEl) {
-        resultEl.textContent = text;
-        resultEl.className = `result ${type}`;
-        resultEl.style.display = 'block';
-      } else {
-        alert(`Сообщение: ${text}`);
-      }
-    }
-
-    // Запускаем инициализацию после загрузки страницы
-    document.addEventListener('DOMContentLoaded', initWebApp);
-  </script>
+        // Небольшая подсказка в консоль
+        console.log('Мини-приложение готово. Вебхук URL:', WEBHOOK_URL);
+    </script>
 </body>
 </html>
