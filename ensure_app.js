@@ -280,9 +280,16 @@ document.getElementById("tg").addEventListener("submit", function(e){
         paymentPurpose: this.paymentPurpose.value,
         warranty_period: warranty_period_value,
     };
-    console.log(JSON.stringify(data, null, 4));
+//    console.log(JSON.stringify(data, null, 4));
 //    tg.MainButton.setText("Задача создана!");
 //    tg.MainButton.show();
 //    tg.sendData(JSON.stringify(data, null, 4));
-    tg.shareContent({text:JSON.stringify(data, null, 4)});
+try {
+    const result = await tg.shareContent({text: "JSON.stringify(data, null, 4)"});
+    console.log("Данные успешно отправлены в MAX:", result);
+    window.WebApp.close();
+      } catch (error) {
+    console.error("Ошибка при отправке через shareContent:", error);
+    alert("Не удалось отправить данные. Попробуйте ещё раз.");
+  }
 });
