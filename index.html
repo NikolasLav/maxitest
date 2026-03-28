@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MAX Simple Form (Fixed)</title>
+  <title>MAX Simple Form (Final Fix)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Правильный URL SDK -->
   <script src="https://st.max.ru/js/max-web-app.js"></script>
@@ -85,33 +85,66 @@
   </div>
 
   <script>
-    // Объявляем переменные в глобальной области видимости
+    // Глобальные переменные
     let isWebAppReady = false;
     const resultEl = document.getElementById('result');
 
-    // Инициализация MAX WebApp с проверкой доступности
-    if (window.WebApp && typeof window.WebApp.ready === 'function') {
-      window.WebApp.ready()
-        .then(() => {
-          isWebAppReady = true;
-          showMessage('✅ Приложение готово к работе', 'success');
+    // Инициализация MAX WebApp с защитой от ошибок
+    function initWebApp() {
+      // Проверяем доступность WebApp
+      if (!window.WebApp) {
+        showMessage('⚠️ SDK MAX не загружен. Работа в режиме отладки.', 'error');
+        isWebAppReady = true; // Разрешаем отправку данных без SDK
+        return;
+      }
 
-          // Применяем тему
-          if (typeof WebApp.getTheme === 'function') {
-            WebApp.getTheme()
-              .then(theme => {
-                document.body.className = theme.isDark ? 'dark' : 'light';
+      // Пытаемся вызвать ready() только если это функция
+      if (typeof WebApp.ready === 'function') {
+        try {
+          const readyResult = WebApp.ready();
+          // Проверяем, что ready() вернул промис
+          if (readyResult && typeof readyResult.then === 'function') {
+            readyResult
+              .then(() => {
+                isWebAppReady = true;
+                showMessage('✅ Приложение готово к работе', 'success');
+                applyTheme();
               })
-              .catch(() => {
-                // Если тема недоступна, оставляем светлую
+              .catch(error => {
+                console.warn('WebApp ready failed:', error);
+                isWebAppReady = true; // Всё равно разрешаем отправку
+                showMessage('⚠️ Приложение загрузилось с ограничениями', 'error');
               });
+          } else {
+            // Если ready() не вернул промис — считаем SDK готовым
+            isWebAppReady = true;
+            showMessage('⚠️ SDK MAX загружен, но ready() не возвращает промис', 'error');
+            applyTheme();
           }
-        })
-        .catch(error => {
-          showMessage('⚠️ Приложение загрузилось, но с ограничениями', 'error');
-        });
-    } else {
-      showMessage('⚠️ SDK MAX не загружен. Работа в режиме отладки.', 'error');
+        } catch (error) {
+          console.error('Error calling WebApp.ready():', error);
+          isWebAppReady = true;
+          showMessage('⚠️ Ошибка инициализации SDK', 'error');
+        }
+      } else {
+        // Если метода ready() нет — считаем SDK готовым
+        isWebAppReady = true;
+        showMessage('⚠️ Метод ready() недоступен. Работа в упрощённом режиме.', 'error');
+        applyTheme();
+      }
+    }
+
+    // Применяем тему интерфейса
+    function applyTheme() {
+      if (window.WebApp && typeof WebApp.getTheme === 'function') {
+        WebApp.getTheme()
+          .then(theme => {
+            document.body.className = theme.isDark ? 'dark' : 'light';
+          })
+          .catch(() => {
+            // Оставляем светлую тему по умолчанию
+          });
+      }
     }
 
     async function sendData() {
@@ -125,14 +158,16 @@
 
       try {
         // ЗАМЕНИТЕ НА ВАШ ВЕБХУК URL
-        const WEBHOOK_URL = 'https://hhzn8o-81-200-8-152.ru.tuna.am/endpoint';
+        const WEBHOOK_URL = 'https://hhzn8o-81-200-8-152.ru.tuna.am/webhook';
 
-        // Получаем данные пользователя
+        // Получаем данные пользователя, если доступно
         let userInfo = {};
-        try {
-          userInfo = await WebApp.getUserInfo();
-        } catch (error) {
-          console.warn('User info not available');
+        if (window.WebApp && typeof WebApp.getUserInfo === 'function') {
+          try {
+            userInfo = await WebApp.getUserInfo();
+          } catch (error) {
+            console.warn('User info not available:', error);
+          }
         }
 
         const payload = {
@@ -161,7 +196,7 @@
         const result = await response.json();
         showMessage(`✅ Данные успешно отправлены!\nID пользователя: ${userInfo.userId}`, 'success');
       } catch (error) {
-        console.error('Ошибка:', error);
+        console.error('Ошибка отправки:', error);
         let errorMessage = '❌ Ошибка отправки данных';
         if (error.name === 'AbortError') {
           errorMessage += '\n⏰ Таймаут запроса (10 сек)';
@@ -181,6 +216,9 @@
         alert(`Сообщение: ${text}`);
       }
     }
+
+    // Запускаем инициализацию после загрузки страницы
+    document.addEventListener('DOMContentLoaded', initWebApp);
   </script>
 </body>
 </html>
