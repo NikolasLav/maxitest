@@ -2,9 +2,9 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-  <title>MAX Form App</title>
+  <title>MAX Simple Form</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Подключаем SDK MAX -->
+  <!-- Правильный URL SDK -->
   <script src="https://st.max.ru/js/max-web-app.js"></script>
   <style>
     body {
@@ -31,10 +31,10 @@
       margin-bottom: 5px;
       font-weight: bold;
     }
-    input, textarea, select {
+    input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
+      padding: 12px;
+      margin-bottom: 20px;
       border: 1px solid #ddd;
       border-radius: 6px;
       box-sizing: border-box;
@@ -52,11 +52,11 @@
     button:hover {
       background: #0056b3;
     }
-    .status-message {
-      margin-top: 15px;
-      padding: 10px;
-      text-align: center;
+    #result {
+      margin-top: 20px;
+      padding: 15px;
       border-radius: 6px;
+      text-align: center;
       display: none;
     }
     .success {
@@ -73,94 +73,76 @@
 </head>
 <body>
   <div class="container">
-    <h1>MAX Form App</h1>
+    <h1>MAX Simple Form</h1>
 
-    <form id="data-form">
-      <label for="name">Ваше имя:</label>
-      <input type="text" id="name" name="name" required>
+    <div>
+      <label for="message">Введите текст:</label>
+      <input type="text" id="message" placeholder="Ваш текст здесь">
+    </div>
 
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required>
+    <button onclick="sendData()">Отправить через вебхук</button>
 
-      <label for="message">Сообщение:</label>
-      <textarea id="message" name="message" rows="4" required></textarea>
-
-      <label for="category">Категория:</label>
-      <select id="category" name="category">
-        <option value="support">Поддержка</option>
-        <option value="feedback">Обратная связь</option>
-        <option value="bug">Ошибка</option>
-      </select>
-
-      <button type="submit">Отправить через вебхук</button>
-    </form>
-
-    <div id="status-message" class="status-message"></div>
+    <div id="result"></div>
   </div>
 
   <script>
-    // Инициализация MAX App
+    // Инициализация MAX WebApp
     window.WebApp.ready()
       .then(() => {
-        console.log('✅ MAX App is ready');
+        showMessage('✅ Приложение готово к работе', 'success');
 
         // Применяем тему
         WebApp.getTheme()
           .then(theme => {
             document.body.className = theme.isDark ? 'dark' : 'light';
           })
-          .catch(error => {
-            console.error('❌ Error getting theme:', error);
+          .catch(() => {
+            // Если тема недоступна, оставляем светлую
           });
       })
       .catch(error => {
-        console.error('❌ MAX initialization failed:', error);
+        showMessage('⚠️ Приложение загрузилось, но с ограничениями', 'error');
       });
 
-    // Обработка отправки формы
-    document.getElementById('data-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      await sendDataViaWebhook();
-    });
+    async function sendData() {
+      const resultEl = document.getElementById('result');
+      const message = document.getElementById('message').value.trim();
 
-    async function sendDataViaWebhook() {
-      const statusEl = document.getElementById('status-message');
-      const formData = new FormData(document.getElementById('data-form'));
-
-      // Получаем данные пользователя из MAX (если нужно)
-      let userInfo = {};
-      try {
-        userInfo = await WebApp.getUserInfo();
-      } catch (error) {
-        console.warn('User info not available:', error);
+      // Если поле пустое, всё равно отправляем (по вашему запросу)
+      if (!message) {
+        showMessage('⚠ Отправляю пустое поле...', 'error');
       }
 
-      // Формируем данные для отправки
-      const payload = {
-        userData: {
+      try {
+        // ПОЛУЧИТЕ ВАШ ВЕБХУК URL И ЗАМЕНИТЕ ЗДЕСЬ
+        const WEBHOOK_URL = 'https://ojie4q-81-200-8-152.ru.tuna.am/webhook';
+
+        // Получаем данные пользователя
+        let userInfo = {};
+        try {
+          userInfo = await WebApp.getUserInfo();
+        } catch (error) {
+          console.warn('User info not available');
+        }
+
+        const payload = {
+          message: message,
           userId: userInfo.userId || 'unknown',
           firstName: userInfo.firstName || '',
-          lastName: userInfo.lastName || ''
-        },
-        formData: {
-          name: formData.get('name'),
-          email: formData.get('email'),
-          message: formData.get('message'),
-          category: formData.get('category')
-        },
-        timestamp: new Date().toISOString()
-      };
+          lastName: userInfo.lastName || '',
+          timestamp: new Date().toISOString()
+        };
 
-      try {
-        // ЗАМЕНИТЕ НА ВАШ ВЕБХУК URL
-        const WEBHOOK_URL = 'https://ojie4q-81-200-8-152.ru.tuna.am/webhook';
+        showMessage('⏱️ Отправляем данные...', 'success');
 
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          // Увеличиваем таймаут для отладки
+          signal: AbortSignal.timeout(10000)
         });
 
         if (!response.ok) {
@@ -168,22 +150,23 @@
         }
 
         const result = await response.json();
-        showStatusMessage('✅ Данные успешно отправлены!', 'success');
-        document.getElementById('data-form').reset();
+        showMessage(`✅ Данные успешно отправлены!\nID пользователя: ${userInfo.userId}`, 'success');
       } catch (error) {
-        console.error('❌ Ошибка отправки:', error);
-        showStatusMessage('❌ Ошибка отправки данных. Проверьте подключение.', 'error');
+        console.error('Ошибка:', error);
+        let errorMessage = '❌ Ошибка отправки данных';
+        if (error.name === 'AbortError') {
+          errorMessage += '\n⏰ Таймаут запроса (10 сек)';
+        } else if (error.message.includes('network')) {
+          errorMessage += '\n🌐 Проблемы с сетью';
+        }
+        showMessage(errorMessage, 'error');
       }
     }
 
-    function showStatusMessage(message, type) {
-      statusEl.textContent = message;
-      statusEl.className = `status-message ${type}`;
-      statusEl.style.display = 'block';
-
-      setTimeout(() => {
-        statusEl.style.display = 'none';
-      }, 5000);
+    function showMessage(text, type) {
+      resultEl.textContent = text;
+      resultEl.className = `result ${type}`;
+      resultEl.style.display = 'block';
     }
   </script>
 </body>
