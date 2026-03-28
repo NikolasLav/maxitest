@@ -1,13 +1,25 @@
 // ensure app
-document.addEventListener('DOMContentLoaded', () => {
-    if (!window.WebApp) {
-        console.error('❌ WebApp не загружен');
-        return;
-    }
-
-    const tg = window.WebApp;
-    tg.ready(); // Обязательно!
-});
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM загружен");
+  
+  // Проверяем наличие WebApp
+  if (typeof window.WebApp === 'undefined') {
+    console.error("window.WebApp не найден! Проверьте подключение библиотеки max-web-app.js");
+    alert("Ошибка: библиотека MAX не загружена");
+    return;
+  }
+  
+  // Инициализация WebApp
+  window.WebApp.ready();
+  console.log("WebApp инициализирован, версия:", window.WebApp.version);
+  console.log("Данные пользователя:", window.WebApp.initDataUnsafe);
+  
+  // Находим форму
+  const form = document.getElementById('orderForm');
+  if (!form) {
+    console.error("Форма с id='orderForm' не найдена");
+    return;
+  }
 
 // current date
 var today = new Date().toISOString().split('T')[0];
@@ -280,12 +292,9 @@ document.getElementById("tg").addEventListener("submit", function(e){
         paymentPurpose: this.paymentPurpose.value,
         warranty_period: warranty_period_value,
     };
-//    console.log(JSON.stringify(data, null, 4));
-//    tg.MainButton.setText("Задача создана!");
-//    tg.MainButton.show();
-//    tg.sendData(JSON.stringify(data, null, 4));
+
 try {
-    const result = tg.shareContent({text: "JSON.stringify(data, null, 4)"});
+    const result = window.WebApp.shareContent({text: "JSON.stringify(data, null, 4)"});
     console.log("Данные успешно отправлены в MAX:", result);
     window.WebApp.close();
       } catch (error) {
