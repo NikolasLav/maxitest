@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log("WebApp инициализирован, версия:", window.WebApp.version);
   console.log("Данные пользователя:", window.WebApp.initDataUnsafe);
   const purpose = document.getElementById('paymentPurpose');
-  purpose.value = window.WebApp.initDataUnsafe
+  purpose.value = window.WebApp.initDataUnsafe;
   
   // Находим форму
   const form = document.getElementById('orderForm');
